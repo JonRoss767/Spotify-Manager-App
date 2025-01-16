@@ -1,0 +1,5 @@
+List of things for me to do:
+
+1. Finish basic styling
+2. implement account auth/spotify auth
+...
