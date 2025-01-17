@@ -4,6 +4,7 @@ import "../globals.css";
 
 export default function NavBar() {
   const navItems = [
+    { name: "Home", path: "/" },
     { name: "Profile", path: "/user" },
     { name: "Tracks", path: "/tracks" },
     { name: "Albums", path: "/album" },
@@ -12,21 +13,21 @@ export default function NavBar() {
   ];
 
   return (
-    <nav className="bg-green-500 h-full flex flex-col items-center">
+    <nav className="bg-S-DarkGrey border-r-8 border-S-Black h-full flex flex-col items-center">
       <ul className=" w-[85%] mt-5 flex flex-col gap-3">
         {navItems.map((item) => (
           <li key={item.path} className="">
             <Link
               className={`
-              border-2 
-              border-gray-800
-              bg-gray-700
+              border-4 
+              border-S-Black
+              bg-S-LightGrey
               p-4
               w-full
               text-white
               text-3xl
               font-normal
-              hover:text-green-500
+              hover:text-S-Green
               transition-all
               block
               text-center
