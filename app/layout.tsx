@@ -35,7 +35,6 @@ export default function RootLayout({
               width={140} // Matches the width of the sidebar
               height={140} // Adjust to fit the height of the header
               className="object-contain"
-              layout="intrinsic"
             />
           </div>
 
