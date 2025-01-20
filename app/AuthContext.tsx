@@ -18,6 +18,8 @@ import {
 
 interface AuthContextType {
   token: string | null;
+  refresh_token: string | null;
+  token_experation: number | null;
   error: string | null;
   loading: boolean;
   logout: () => void;
@@ -53,24 +55,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [token, setToken] = useState<string | null>(
     getStoredItem("access_token")
   );
+  const [refreshToken, setRefreshToken] = useState<string | null>(
+    getStoredItem("refresh_token")
+  );
+  const [tokenExpiration, setTokenExpiration] = useState<number | null>(
+    getStoredItem("expires_at") ? parseInt(getStoredItem("expires_at")!) : null
+  );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refreshAccessToken = useCallback(async () => {
-    const refresh_token = getStoredItem("refresh_token");
-    const expiresAt = getStoredItem("expires_at");
-
     if (
-      !refresh_token ||
-      !expiresAt ||
-      Date.now() / 1000 >= parseInt(expiresAt)
+      !refreshToken ||
+      !tokenExpiration ||
+      Date.now() / 1000 >= tokenExpiration
     ) {
       return;
     }
 
     try {
       setLoading(true);
-      const refreshedTokenData = await spotifyRefreshAccessToken(refresh_token);
+      const refreshedTokenData = await spotifyRefreshAccessToken(refreshToken);
       const {
         access_token,
         refresh_token: newRefreshToken,
@@ -78,6 +83,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } = refreshedTokenData;
 
       setToken(access_token);
+      setRefreshToken(newRefreshToken);
+      setTokenExpiration(Date.now() / 1000 + expires_in);
+
       setStoredItem("access_token", access_token);
       setStoredItem("refresh_token", newRefreshToken);
       setStoredItem("expires_at", (Date.now() / 1000 + expires_in).toString());
@@ -87,7 +95,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [refreshToken, tokenExpiration]);
 
   const handleAuth = useCallback(async () => {
     const storedToken = getStoredItem("access_token");
@@ -116,6 +124,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const { access_token, refresh_token, expires_in } = tokenData;
 
       setToken(access_token);
+      setRefreshToken(refresh_token);
+      setTokenExpiration(Date.now() / 1000 + expires_in);
+
       setStoredItem("access_token", access_token);
       setStoredItem("refresh_token", refresh_token);
       setStoredItem("expires_at", (Date.now() / 1000 + expires_in).toString());
@@ -133,6 +144,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = () => {
     setToken(null);
+    setRefreshToken(null);
+    setTokenExpiration(null);
     removeStoredItem("access_token");
     removeStoredItem("refresh_token");
     removeStoredItem("expires_at");
@@ -140,7 +153,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   return (
     <AuthContext.Provider
-      value={{ token, error, loading, logout, refreshAccessToken }}
+      value={{
+        token,
+        refresh_token: refreshToken,
+        token_experation: tokenExpiration,
+        error,
+        loading,
+        logout,
+        refreshAccessToken,
+      }}
     >
       {children}
     </AuthContext.Provider>
