@@ -3,6 +3,7 @@ import "./globals.css";
 import NavBar from "./components/NavBar";
 import Image from "next/image";
 import { AuthProvider } from "./AuthContext";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "Spotify Manager",
@@ -49,6 +50,7 @@ export default function RootLayout({
           {/* Main Content */}
           <div className="flex-1 overflow-y-auto bg-S-DarkGrey p-4 text-white">
             <AuthProvider>{children}</AuthProvider>
+            <Analytics />
           </div>
         </div>
       </body>
