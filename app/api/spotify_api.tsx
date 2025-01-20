@@ -3,6 +3,12 @@ export const clientId = "8a8de0c5076345f9a5ff8c79ba6440f7";
 // Helper to check if running on the client
 const isBrowser = typeof window !== "undefined";
 
+interface TokenData {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+}
+
 export async function refreshAccessToken(refresh_token: string) {
   const response = await fetch("./getRefreshAccessToken", {
     // Backend endpoint
@@ -56,8 +62,7 @@ export async function redirectToAuthCodeFlow(clientId: string) {
 export async function getAccessToken(
   clientId: string,
   code: string
-): Promise<string> {
-  // This logic requires localStorage, only available in the browser
+): Promise<TokenData> {
   if (!isBrowser) throw new Error("localStorage is not available");
 
   const verifier = localStorage.getItem("verifier");
@@ -79,8 +84,19 @@ export async function getAccessToken(
     body: params,
   });
 
-  const { access_token } = await result.json();
-  return access_token;
+  const data = await result.json();
+  console.log("Token Exchange Response:", data);
+
+  const { access_token, refresh_token, expires_in } = data;
+
+  if (!access_token || !refresh_token) {
+    throw new Error(
+      `Failed to fetch tokens. Response: ${JSON.stringify(data)}`
+    );
+  }
+
+  // Return the full object containing both tokens and expiration
+  return { access_token, refresh_token, expires_in };
 }
 
 function generateCodeVerifier(length: number): string {

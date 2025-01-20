@@ -40,7 +40,18 @@ export default async function getRefreshAccessToken(
     }
 
     const data = await response.json();
-    return res.status(200).json(data);
+    const { access_token, refresh_token: newRefreshToken, expires_in } = data;
+
+    if (!access_token || !newRefreshToken || !expires_in) {
+      throw new Error("Missing expected token data in response");
+    }
+
+    // Return the refreshed token data
+    return res.status(200).json({
+      access_token,
+      refresh_token: newRefreshToken, // New refresh token may be returned
+      expires_in, // Expiration time for the access token
+    });
   } catch (error: unknown) {
     if (error instanceof Error) {
       return res.status(500).json({ error: error.message });

@@ -29,6 +29,12 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+interface TokenData {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number; // Time in seconds before the access token expires
+}
+
 // Client-side storage helper functions with window check
 const getStoredItem = (key: string): string | null => {
   if (typeof window !== "undefined") {
@@ -60,10 +66,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const refresh_token = getStoredItem("refresh_token");
     const expiresAt = getStoredItem("expires_at");
 
+    // Check if refresh_token exists and if the token has expired
     if (
       !refresh_token ||
       !expiresAt ||
-      Date.now() / 1000 < parseInt(expiresAt)
+      Date.now() / 1000 >= parseInt(expiresAt)
     ) {
       return;
     }
@@ -71,10 +78,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setLoading(true);
       const refreshedTokenData = await refreshAccessToken(refresh_token);
-      const { access_token, expires_in } = refreshedTokenData;
+      const {
+        access_token,
+        refresh_token: newRefreshToken,
+        expires_in,
+      } = refreshedTokenData;
 
+      // Update state and localStorage with the new tokens and expiration time
       setToken(access_token);
       setStoredItem("access_token", access_token);
+      setStoredItem("refresh_token", newRefreshToken);
       setStoredItem("expires_at", (Date.now() / 1000 + expires_in).toString());
     } catch (err: unknown) {
       setError("Failed to refresh token");
@@ -87,6 +100,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const handleAuth = useCallback(async () => {
     const storedToken = getStoredItem("access_token");
 
+    // If there's already a valid access token, check expiration
     if (storedToken) {
       const expiresAt = getStoredItem("expires_at");
       if (expiresAt && Date.now() / 1000 < parseInt(expiresAt)) {
@@ -94,11 +108,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setLoading(false);
         return;
       } else {
+        // If the token is expired, refresh it
         await refreshToken();
         return;
       }
     }
 
+    // If no access token, try to authenticate via authorization code flow
     const code = getAuthCode();
     if (!code) {
       redirectToAuthCodeFlow(clientId);
@@ -107,10 +123,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     try {
       setLoading(true);
-      const token = await getAccessToken(clientId, code);
-      setToken(token);
-      setStoredItem("access_token", token);
-      setStoredItem("expires_at", (Date.now() / 1000 + 3600).toString()); // Assuming token expires in 1 hour
+      const tokenData = await getAccessToken(clientId, code); // This should return both tokens
+      const { access_token, refresh_token, expires_in } = tokenData;
+
+      // Store both tokens and the expiration time
+      setToken(access_token);
+      setStoredItem("access_token", access_token);
+      setStoredItem("refresh_token", refresh_token);
+      setStoredItem("expires_at", (Date.now() / 1000 + expires_in).toString());
     } catch (err: unknown) {
       setError((err as Error).message || "Failed to fetch token");
       console.error(err);

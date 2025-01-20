@@ -20,6 +20,10 @@ async function fetchProfile(token: string): Promise<Profile> {
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      // Handle unauthorized access (expired token or invalid access)
+      throw new Error("Unauthorized - Token may be expired");
+    }
     throw new Error("Failed to fetch profile data");
   }
 
@@ -27,7 +31,13 @@ async function fetchProfile(token: string): Promise<Profile> {
 }
 
 export default function UserPage() {
-  const { token, error: authError, loading: authLoading, logout } = useAuth();
+  const {
+    token,
+    error: authError,
+    loading: authLoading,
+    logout,
+    refreshAccessToken,
+  } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,25 +52,64 @@ export default function UserPage() {
 
       try {
         setLoading(true);
+        const cachedProfile = localStorage.getItem("profile");
+
+        if (cachedProfile) {
+          setProfile(JSON.parse(cachedProfile)); // Use cached profile data
+          setLoading(false);
+          return;
+        }
+
+        // Fetch profile data
         const profileData = await fetchProfile(token);
         setProfile(profileData);
+        localStorage.setItem("profile", JSON.stringify(profileData)); // Cache the profile
       } catch (err: unknown) {
         console.error(err);
-        setError("Failed to fetch profile data");
+
+        // If the error is due to token expiration, attempt to refresh the token
+        if ((err as Error).message === "Unauthorized - Token may be expired") {
+          try {
+            // Try to refresh the token
+            const refresh_token = localStorage.getItem("refresh_token");
+            if (!refresh_token) {
+              setError("No refresh token found. Please log in again.");
+              setLoading(false);
+              return;
+            }
+
+            const refreshedToken = await refreshAccessToken(refresh_token);
+            localStorage.setItem("access_token", refreshedToken);
+            setToken(refreshedToken); // Update token in the state
+            // After refreshing the token, retry fetching the profile
+            const profileData = await fetchProfile(refreshedToken);
+            setProfile(profileData);
+            localStorage.setItem("profile", JSON.stringify(profileData)); // Cache the profile
+          } catch (refreshError) {
+            setError("Failed to refresh the token. Please log in again.");
+          }
+        } else {
+          setError("Failed to fetch profile data");
+        }
       } finally {
         setLoading(false);
       }
     }
 
     loadProfile();
-  }, [token]);
+  }, [token, refreshAccessToken]);
 
   if (authLoading) {
     return <p>Loading authentication...</p>;
   }
 
   if (authError) {
-    return <p>Error: {authError}</p>;
+    return (
+      <div>
+        <p>Error: {authError}</p>
+        <SignInPrompt onSignIn={() => (window.location.href = "/login")} />
+      </div>
+    );
   }
 
   if (!token) {
@@ -86,12 +135,18 @@ export default function UserPage() {
         <h2 className="text-xl font-semibold text-gray-700 mb-4">
           Logged in as {profile.display_name}
         </h2>
-        {profile.images?.length && (
+        {profile.images?.length ? (
           <Image
             src={profile.images[0].url}
             alt="Profile Avatar"
             className="w-40 h-40 rounded-full mb-4"
+            width={160}
+            height={160}
           />
+        ) : (
+          <div className="w-40 h-40 rounded-full mb-4 bg-gray-300 flex justify-center items-center">
+            <span className="text-gray-600">No image</span>
+          </div>
         )}
         <ul className="space-y-2 text-gray-600">
           <li>
