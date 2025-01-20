@@ -46,7 +46,8 @@ export default function UserPage() {
         setLoading(true);
         const profileData = await fetchProfile(token); // Fetch the profile using the token
         setProfile(profileData);
-      } catch (err) {
+      } catch (err: unknown) {
+        console.error(err); // Log the error
         setError("Failed to fetch profile data");
       } finally {
         setLoading(false);
