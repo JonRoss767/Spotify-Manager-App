@@ -3,6 +3,24 @@ export const clientId = "8a8de0c5076345f9a5ff8c79ba6440f7";
 // Helper to check if running on the client
 const isBrowser = typeof window !== "undefined";
 
+export async function refreshAccessToken(refresh_token: string) {
+  const response = await fetch("./getRefreshAccessToken", {
+    // Backend endpoint
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ refresh_token }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to refresh token");
+  }
+
+  const data = await response.json();
+  return data.access_token; // Access token returned from backend
+}
+
 export function getAuthCode(): string | null {
   // This logic will only work in the browser
   if (!isBrowser) return null;
@@ -80,22 +98,4 @@ async function generateCodeChallenge(codeVerifier: string): Promise<string> {
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");
-}
-
-export async function refreshAccessToken(refresh_token: string) {
-  const response = await fetch("./getRefreshAccessToken", {
-    // Backend endpoint
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ refresh_token }),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to refresh token");
-  }
-
-  const data = await response.json();
-  return data.access_token; // Access token returned from backend
 }
