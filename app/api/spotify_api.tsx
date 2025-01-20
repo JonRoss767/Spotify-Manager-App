@@ -1,14 +1,23 @@
 export const clientId = "8a8de0c5076345f9a5ff8c79ba6440f7";
 
+// Helper to check if running on the client
+const isBrowser = typeof window !== "undefined";
+
 export function getAuthCode(): string | null {
+  // This logic will only work in the browser
+  if (!isBrowser) return null;
   const params = new URLSearchParams(window.location.search);
   return params.get("code");
 }
 
 export async function redirectToAuthCodeFlow(clientId: string) {
-  const verifier = generateCodeVerifier(128);
-  const challenge = generateCodeChallenge(verifier);
+  // This logic will only run in the browser
+  if (!isBrowser) return;
 
+  const verifier = generateCodeVerifier(128);
+  const challenge = await generateCodeChallenge(verifier);
+
+  // Store verifier in localStorage, only available in the browser
   localStorage.setItem("verifier", verifier);
 
   const params = new URLSearchParams();
@@ -17,8 +26,9 @@ export async function redirectToAuthCodeFlow(clientId: string) {
   params.append("redirect_uri", "http://localhost:3000/");
   params.append("scope", "user-read-private user-library-read user-read-email");
   params.append("code_challenge_method", "S256");
-  params.append("code_challenge", await challenge);
+  params.append("code_challenge", challenge);
 
+  // Redirect user to Spotify's authorization page
   document.location = `https://accounts.spotify.com/authorize?${params.toString()}`;
 }
 
@@ -26,14 +36,18 @@ export async function getAccessToken(
   clientId: string,
   code: string
 ): Promise<string> {
+  // This logic requires localStorage, only available in the browser
+  if (!isBrowser) throw new Error("localStorage is not available");
+
   const verifier = localStorage.getItem("verifier");
+  if (!verifier) throw new Error("Verifier not found");
 
   const params = new URLSearchParams();
   params.append("client_id", clientId);
   params.append("grant_type", "authorization_code");
   params.append("code", code);
   params.append("redirect_uri", "http://localhost:3000/user");
-  params.append("code_verifier", verifier!);
+  params.append("code_verifier", verifier);
 
   const result = await fetch("https://accounts.spotify.com/api/token", {
     method: "POST",

@@ -66,7 +66,7 @@ export default function TracksPage() {
   );
 
   useEffect(() => {
-    if (token) {
+    if (typeof window !== "undefined" && token) {
       loadSavedTracks();
     }
   }, [token, loadSavedTracks]);

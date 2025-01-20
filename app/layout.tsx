@@ -6,7 +6,8 @@ import { AuthProvider } from "./AuthContext";
 
 export const metadata: Metadata = {
   title: "Spotify Manager",
-  description: "Not a typical spotify clone!",
+  description:
+    "A spotify account manager to view and edit your spotify account!",
 };
 
 export default function RootLayout({

@@ -35,26 +35,29 @@ export default function UserPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadProfile() {
-      if (!token) {
-        setError("No token found. Please authenticate.");
-        setLoading(false);
-        return;
+    // Check if the code is running in the browser
+    if (typeof window !== "undefined") {
+      async function loadProfile() {
+        if (!token) {
+          setError("No token found. Please authenticate.");
+          setLoading(false);
+          return;
+        }
+
+        try {
+          setLoading(true);
+          const profileData = await fetchProfile(token); // Fetch the profile using the token
+          setProfile(profileData);
+        } catch (err: unknown) {
+          console.error(err); // Log the error
+          setError("Failed to fetch profile data");
+        } finally {
+          setLoading(false);
+        }
       }
 
-      try {
-        setLoading(true);
-        const profileData = await fetchProfile(token); // Fetch the profile using the token
-        setProfile(profileData);
-      } catch (err: unknown) {
-        console.error(err); // Log the error
-        setError("Failed to fetch profile data");
-      } finally {
-        setLoading(false);
-      }
+      loadProfile();
     }
-
-    loadProfile();
   }, [token]); // Trigger the effect whenever the token changes
 
   // If the token is missing, prompt the user to sign in

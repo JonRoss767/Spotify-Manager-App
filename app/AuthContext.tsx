@@ -29,10 +29,25 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-const getStoredItem = (key: string): string | null => localStorage.getItem(key);
-const setStoredItem = (key: string, value: string) =>
-  localStorage.setItem(key, value);
-const removeStoredItem = (key: string) => localStorage.removeItem(key);
+// Client-side storage helper functions with window check
+const getStoredItem = (key: string): string | null => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem(key);
+  }
+  return null; // Returns null on the server side
+};
+
+const setStoredItem = (key: string, value: string) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(key, value);
+  }
+};
+
+const removeStoredItem = (key: string) => {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem(key);
+  }
+};
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [token, setToken] = useState<string | null>(
