@@ -16,11 +16,16 @@ interface TokenResponse {
 }
 
 // Type guard to check if the response data is of type TokenResponse
-function isTokenResponse(data: any): data is TokenResponse {
+function isTokenResponse(data: unknown): data is TokenResponse {
   return (
-    typeof data.access_token === "string" &&
-    typeof data.refresh_token === "string" &&
-    typeof data.expires_in === "number"
+    typeof data === "object" &&
+    data !== null &&
+    "access_token" in data &&
+    typeof (data as { access_token: unknown }).access_token === "string" &&
+    "refresh_token" in data &&
+    typeof (data as { refresh_token: unknown }).refresh_token === "string" &&
+    "expires_in" in data &&
+    typeof (data as { expires_in: unknown }).expires_in === "number"
   );
 }
 
@@ -55,7 +60,7 @@ export default async function getRefreshAccessToken(
       throw new Error("Failed to refresh token");
     }
 
-    const data = await response.json();
+    const data: unknown = await response.json();
 
     // Check if data is of type TokenResponse using the type guard
     if (!isTokenResponse(data)) {
