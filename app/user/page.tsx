@@ -51,15 +51,8 @@ export default function UserPage() {
 
       try {
         setLoading(true);
-        const cachedProfile = localStorage.getItem("profile");
 
-        if (cachedProfile) {
-          setProfile(JSON.parse(cachedProfile)); // Use cached profile data
-          setLoading(false);
-          return;
-        }
-
-        const profileData = await fetchProfile(token); // Fetch profile data
+        const profileData = await fetchProfile(token);
         setProfile(profileData);
         localStorage.setItem("profile", JSON.stringify(profileData)); // Cache the profile
       } catch (err: unknown) {
@@ -68,13 +61,20 @@ export default function UserPage() {
         if ((err as Error).message === "Unauthorized - Token may be expired") {
           try {
             await refreshAccessToken(); // Use refresh token from context
-            // After refreshing the token, retry fetching the profile
-            const profileData = await fetchProfile(token!);
+
+            // Retrieve updated token from AuthContext
+            const updatedToken = localStorage.getItem("access_token");
+            if (!updatedToken) {
+              throw new Error("Token refresh failed. Please log in again.");
+            }
+
+            const profileData = await fetchProfile(updatedToken); // Retry fetching with the new token
             setProfile(profileData);
             localStorage.setItem("profile", JSON.stringify(profileData)); // Cache the profile
           } catch (refreshError) {
-            console.log(refreshError);
+            console.error(refreshError);
             setError("Failed to refresh the token. Please log in again.");
+            logout(); // Log out the user if the refresh fails
           }
         } else {
           setError("Failed to fetch profile data");
@@ -85,7 +85,7 @@ export default function UserPage() {
     }
 
     loadProfile();
-  }, [token, refreshAccessToken]);
+  }, [token, refreshAccessToken, logout]);
 
   if (authLoading) {
     return <p>Loading authentication...</p>;

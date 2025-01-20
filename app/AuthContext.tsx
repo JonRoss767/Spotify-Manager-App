@@ -65,12 +65,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
 
   const refreshAccessToken = useCallback(async () => {
-    if (
-      !refreshToken ||
-      !tokenExpiration ||
-      Date.now() / 1000 >= tokenExpiration
-    ) {
-      return;
+    if (!refreshToken) {
+      console.warn("No refresh token available.");
+      throw new Error("No refresh token available.");
     }
 
     try {
@@ -82,20 +79,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
         expires_in,
       } = refreshedTokenData;
 
+      const newExpiration = Date.now() / 1000 + expires_in;
+
+      // Update state and local storage
       setToken(access_token);
-      setRefreshToken(newRefreshToken);
-      setTokenExpiration(Date.now() / 1000 + expires_in);
+      setRefreshToken(newRefreshToken || refreshToken);
+      setTokenExpiration(newExpiration);
 
       setStoredItem("access_token", access_token);
-      setStoredItem("refresh_token", newRefreshToken);
-      setStoredItem("expires_at", (Date.now() / 1000 + expires_in).toString());
-    } catch (err: unknown) {
-      setError("Failed to refresh token");
-      console.error(err);
+      setStoredItem("refresh_token", newRefreshToken || refreshToken);
+      setStoredItem("expires_at", newExpiration.toString());
+    } catch (err) {
+      console.error("Failed to refresh token:", err);
+      setError("Failed to refresh token.");
+      logout();
     } finally {
       setLoading(false);
     }
-  }, [refreshToken, tokenExpiration]);
+  }, [refreshToken]);
 
   const handleAuth = useCallback(async () => {
     const storedToken = getStoredItem("access_token");
@@ -105,9 +106,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (expiresAt && Date.now() / 1000 < parseInt(expiresAt)) {
         setToken(storedToken);
         setLoading(false);
-        return;
-      } else {
-        await refreshAccessToken();
         return;
       }
     }
@@ -123,33 +121,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const tokenData = await getAccessToken(clientId, code);
       const { access_token, refresh_token, expires_in } = tokenData;
 
+      const newExpiration = Date.now() / 1000 + expires_in;
+
       setToken(access_token);
       setRefreshToken(refresh_token);
-      setTokenExpiration(Date.now() / 1000 + expires_in);
+      setTokenExpiration(newExpiration);
 
       setStoredItem("access_token", access_token);
       setStoredItem("refresh_token", refresh_token);
-      setStoredItem("expires_at", (Date.now() / 1000 + expires_in).toString());
-    } catch (err: unknown) {
+      setStoredItem("expires_at", newExpiration.toString());
+    } catch (err) {
+      console.error("Authentication error:", err);
       setError((err as Error).message || "Failed to fetch token");
-      console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [refreshAccessToken]);
+  }, []);
 
   useEffect(() => {
     handleAuth();
   }, [handleAuth]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setToken(null);
     setRefreshToken(null);
     setTokenExpiration(null);
     removeStoredItem("access_token");
     removeStoredItem("refresh_token");
     removeStoredItem("expires_at");
-  };
+    setError(null);
+  }, []);
 
   return (
     <AuthContext.Provider
