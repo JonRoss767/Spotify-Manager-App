@@ -73,6 +73,7 @@ export default function UserPage() {
             setProfile(profileData);
             localStorage.setItem("profile", JSON.stringify(profileData)); // Cache the profile
           } catch (refreshError) {
+            console.log(refreshError);
             setError("Failed to refresh the token. Please log in again.");
           }
         } else {
