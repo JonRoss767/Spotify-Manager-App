@@ -49,7 +49,10 @@ export async function getAccessToken(
   params.append("client_id", clientId);
   params.append("grant_type", "authorization_code");
   params.append("code", code);
-  params.append("redirect_uri", "http://localhost:3000/user");
+  params.append(
+    "redirect_uri",
+    "https://spotify-manager-4gkzmcu4p-jonathon-ross-projects-8c6fc734.vercel.app"
+  );
   params.append("code_verifier", verifier);
 
   const result = await fetch("https://accounts.spotify.com/api/token", {
@@ -80,7 +83,7 @@ async function generateCodeChallenge(codeVerifier: string): Promise<string> {
 }
 
 export async function refreshAccessToken(refresh_token: string) {
-  const response = await fetch("/api/refresh-token", {
+  const response = await fetch("./getRefreshAccessToken", {
     // Backend endpoint
     method: "POST",
     headers: {

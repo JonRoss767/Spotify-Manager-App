@@ -58,7 +58,7 @@ export default function UserPage() {
 
       loadProfile();
     }
-  }, [token]); // Trigger the effect whenever the token changes
+  }, [token]);
 
   // If the token is missing, prompt the user to sign in
   if (!token) {

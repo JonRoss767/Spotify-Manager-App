@@ -8,7 +8,10 @@ const CLIENT_ID = "8a8de0c5076345f9a5ff8c79ba6440f7";
 const CLIENT_SECRET = process.env.CLIENT_SECRET!;
 const TOKEN_URL = "https://accounts.spotify.com/api/token";
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function getRefreshAccessToken(
+  req: VercelRequest,
+  res: VercelResponse
+) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
@@ -39,7 +42,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const data = await response.json();
     return res.status(200).json(data);
   } catch (error: unknown) {
-    // Check if error is an instance of Error before accessing its properties
     if (error instanceof Error) {
       return res.status(500).json({ error: error.message });
     } else {
