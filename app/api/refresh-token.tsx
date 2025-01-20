@@ -1,4 +1,4 @@
-import { VercelRequest, VercelResponse } from "@vercel/node"; // New imports
+import { VercelRequest, VercelResponse } from "@vercel/node";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
 
@@ -13,6 +13,15 @@ interface TokenResponse {
   access_token: string;
   refresh_token: string;
   expires_in: number;
+}
+
+// Type guard to check if the response data is of type TokenResponse
+function isTokenResponse(data: any): data is TokenResponse {
+  return (
+    typeof data.access_token === "string" &&
+    typeof data.refresh_token === "string" &&
+    typeof data.expires_in === "number"
+  );
 }
 
 export default async function getRefreshAccessToken(
@@ -46,19 +55,23 @@ export default async function getRefreshAccessToken(
       throw new Error("Failed to refresh token");
     }
 
-    // Explicitly type the response data using the TokenResponse interface
-    const data: TokenResponse = await response.json();
+    const data = await response.json();
+
+    // Check if data is of type TokenResponse using the type guard
+    if (!isTokenResponse(data)) {
+      throw new Error("Invalid token data received");
+    }
+
     const { access_token, refresh_token: newRefreshToken, expires_in } = data;
 
     if (!access_token || !newRefreshToken || !expires_in) {
       throw new Error("Missing expected token data in response");
     }
 
-    // Return the refreshed token data
     return res.status(200).json({
       access_token,
-      refresh_token: newRefreshToken, // New refresh token may be returned
-      expires_in, // Expiration time for the access token
+      refresh_token: newRefreshToken,
+      expires_in,
     });
   } catch (error: unknown) {
     if (error instanceof Error) {
