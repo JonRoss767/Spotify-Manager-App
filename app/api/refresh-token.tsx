@@ -8,6 +8,13 @@ const CLIENT_ID = "8a8de0c5076345f9a5ff8c79ba6440f7";
 const CLIENT_SECRET = process.env.CLIENT_SECRET!;
 const TOKEN_URL = "https://accounts.spotify.com/api/token";
 
+// Define an interface for the token response
+interface TokenResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+}
+
 export default async function getRefreshAccessToken(
   req: VercelRequest,
   res: VercelResponse
@@ -39,7 +46,8 @@ export default async function getRefreshAccessToken(
       throw new Error("Failed to refresh token");
     }
 
-    const data = await response.json();
+    // Explicitly type the response data using the TokenResponse interface
+    const data: TokenResponse = await response.json();
     const { access_token, refresh_token: newRefreshToken, expires_in } = data;
 
     if (!access_token || !newRefreshToken || !expires_in) {
