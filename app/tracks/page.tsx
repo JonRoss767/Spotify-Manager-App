@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useAuth } from "../AuthContext"; // Import the useAuth hook from AuthContext
+import { useAuth } from "../AuthContext";
+import Track from "../components/Track"; // Import the Track component
 
 interface TrackItem {
   added_at: string;
@@ -17,8 +18,7 @@ interface TrackItem {
   };
 }
 
-// Function to fetch saved tracks from the external API
-async function fetchSavedTracks(token: string, limit = 20, offset = 0) {
+async function fetchSavedTracks(token: string, limit = 50, offset = 0) {
   const url = `https://api.spotify.com/v1/me/tracks?limit=${limit}&offset=${offset}`;
 
   const response = await fetch(url, {
@@ -29,104 +29,68 @@ async function fetchSavedTracks(token: string, limit = 20, offset = 0) {
     throw new Error(`Failed to fetch saved tracks: ${response.statusText}`);
   }
 
-  const data = await response.json();
-  return data; // Contains 'items', 'next', etc.
+  return response.json();
 }
 
 export default function TracksPage() {
-  const { token, error, loading } = useAuth(); // Use token from AuthContext
+  const { token, error: authError, loading: authLoading } = useAuth();
   const [tracks, setTracks] = useState<TrackItem[]>([]);
-  const [errorFetching, setErrorFetching] = useState<{
-    message: string;
-    type: string;
-  } | null>(null);
-  const [loadingMore, setLoadingMore] = useState(false); // To track if more tracks are being loaded
-  const [nextUrl, setNextUrl] = useState<string | null>(null); // URL for next set of tracks
+  const [errorFetching, setErrorFetching] = useState<string | null>(null);
+  const [loading, setLoading] = useState<"initial" | "more" | null>(null);
+  const [nextOffset, setNextOffset] = useState<number | null>(null);
 
-  // Function to fetch saved tracks from the external API
-  // This is used to fetch the initial set of tracks and subsequent tracks
   const loadSavedTracks = useCallback(
     async (offset: number = 0) => {
-      if (!token) return; // Ensure token exists
+      if (!token) return;
 
       try {
-        setErrorFetching(null); // Reset any previous errors
-        setLoadingMore(true); // Indicate loading is happening
+        setErrorFetching(null);
+        setLoading(offset === 0 ? "initial" : "more");
 
-        // Fetch the saved tracks
-        const savedTracks = await fetchSavedTracks(token, 20, offset);
-        setTracks((prevTracks) => [...prevTracks, ...savedTracks.items]); // Append new tracks to the existing list
-        setNextUrl(savedTracks.next); // Set next URL for pagination if available
+        const savedTracks = await fetchSavedTracks(token, 50, offset);
+        setTracks((prevTracks) => [...prevTracks, ...savedTracks.items]);
+        setNextOffset(
+          savedTracks.next
+            ? Number(new URL(savedTracks.next).searchParams.get("offset"))
+            : null
+        );
       } catch (err) {
-        // Handle any errors while fetching
-        if (err instanceof Error) {
-          setErrorFetching({ message: err.message, type: "fetch" });
-        } else {
-          setErrorFetching({
-            message: "An unknown error occurred",
-            type: "fetch",
-          });
-        }
+        setErrorFetching(
+          err instanceof Error ? err.message : "An unknown error occurred"
+        );
       } finally {
-        setLoadingMore(false); // Turn off loading state
+        setLoading(null);
       }
     },
     [token]
   );
 
-  // Fetch initial set of tracks when the component mounts
   useEffect(() => {
     if (token) {
-      // Fetch the first set of tracks
-      loadSavedTracks(0); // Fetch initial set with offset 0
+      loadSavedTracks();
     }
   }, [token, loadSavedTracks]);
 
-  // Load more tracks if next URL is available
-  const loadMoreTracks = () => {
-    if (nextUrl && !loadingMore) {
-      // Extract offset from the next URL for pagination
-      const offset = nextUrl.split("offset=")[1]?.split("&")[0];
-      loadSavedTracks(Number(offset)); // Fetch the next set of tracks based on the offset
-    }
-  };
-
-  if (loading) {
+  if (authLoading || loading === "initial") {
     return <p>Loading...</p>;
   }
 
-  if (error || errorFetching?.message) {
-    return <p>Error: {error || errorFetching?.message}</p>;
+  if (authError || errorFetching) {
+    return <p>Error: {authError || errorFetching}</p>;
   }
 
   return (
     <div>
-      <h1>Saved Tracks</h1>
+      <h1 className="text-5xl pb-4">Saved Tracks</h1>
       <ul>
-        {tracks.map(({ track }) => (
-          <li key={track.id}>
-            <p>
-              <strong>{track.name}</strong> by{" "}
-              {track.artists.map((a) => a.name).join(", ")} -{" "}
-              <span>{track.album.name}</span>
-            </p>
-            {track.album.images.length > 0 && (
-              <img
-                src={track.album.images[0].url}
-                alt={track.album.name}
-                width={50}
-              />
-            )}
-          </li>
+        {tracks.map(({ track }, index) => (
+          <Track key={`${track.id}-${index}`} track={track} />
         ))}
       </ul>
-
-      {/* Load more button */}
-      {nextUrl && !loadingMore && (
-        <button onClick={loadMoreTracks}>Load more</button>
+      {nextOffset !== null && (
+        <button onClick={() => loadSavedTracks(nextOffset)}>Load more</button>
       )}
-
-      {loadingMore && <p>Loading more tracks...</p>}
+      {loading === "more" && <p>Loading more tracks...</p>}
     </div>
   );
 }

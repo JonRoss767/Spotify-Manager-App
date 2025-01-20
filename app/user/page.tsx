@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "../AuthContext"; // Import the context to access token
+import SignInPrompt from "../components/SignInPrompt"; // Adjust the import path based on your file structure
 
 // Type definitions
 interface Profile {
@@ -27,8 +28,8 @@ async function fetchProfile(token: string): Promise<Profile> {
 }
 
 export default function UserPage() {
-  const { token, error: authError, loading: authLoading } = useAuth(); // Use AuthContext to get token
-  const [profile, setProfile] = useState<any>(null);
+  const { token, error: authError, loading: authLoading, logout } = useAuth(); // Use AuthContext to get token and logout
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -54,7 +55,12 @@ export default function UserPage() {
     loadProfile();
   }, [token]); // Trigger the effect whenever the token changes
 
-  // If there is a token, loading or auth error
+  // If the token is missing, prompt the user to sign in
+  if (!token) {
+    return <SignInPrompt onSignIn={() => (window.location.href = "/login")} />;
+  }
+
+  // If there is a token, loading, or auth error
   if (authLoading) {
     return <p>Loading authentication...</p>;
   }
@@ -73,32 +79,69 @@ export default function UserPage() {
     return <p>Loading profile...</p>;
   }
 
-  // If profile data is unavailable
+  // If profile data is available, check that it's not null before rendering
   if (!profile) {
     return <p>Profile data is unavailable. Please try again later.</p>;
   }
 
   // Profile data display
   return (
-    <div>
-      <h1>Spotify Profile</h1>
-      <section>
-        <h2>Logged in as {profile.display_name}</h2>
-        {profile.images && profile.images.length > 0 && (
-          <img src={profile.images[0].url} alt="Profile Avatar" />
+    <div className="w-full mx-auto p-6 bg-gray-100 min-h-screen">
+      {/* Page Title */}
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Spotify Profile</h1>
+
+      {/* Profile Section */}
+      <section className="bg-white shadow-md rounded-lg p-6 border border-gray-200">
+        {/* User Name */}
+        <h2 className="text-xl font-semibold text-gray-700 mb-4">
+          Logged in as {profile?.display_name}
+        </h2>
+
+        {/* Profile Avatar */}
+        {profile?.images && profile?.images.length > 0 && (
+          <img
+            src={profile.images[0].url}
+            alt="Profile Avatar"
+            className="w-40 h-40 rounded-full mb-4"
+          />
         )}
-        <ul>
-          <li>User ID: {profile.id}</li>
-          <li>Email: {profile.email}</li>
+
+        {/* User Details */}
+        <ul className="space-y-2 text-gray-600">
           <li>
-            Spotify URI: <a href={profile.uri}>{profile.uri}</a>
+            <span className="font-medium text-gray-700">User ID:</span>{" "}
+            {profile?.id}
           </li>
-          {profile.external_urls && profile.external_urls.spotify && (
+          <li>
+            <span className="font-medium text-gray-700">Email:</span>{" "}
+            {profile?.email}
+          </li>
+          <li>
+            <span className="font-medium text-gray-700">Spotify URI:</span>{" "}
+            <a href={profile?.uri} className="text-blue-500 hover:underline">
+              {profile?.uri}
+            </a>
+          </li>
+          {profile?.external_urls && profile.external_urls.spotify && (
             <li>
-              Link: <a href={profile.external_urls.spotify}>Profile Link</a>
+              <span className="font-medium text-gray-700">Link:</span>{" "}
+              <a
+                href={profile.external_urls.spotify}
+                className="text-blue-500 hover:underline"
+              >
+                Profile Link
+              </a>
             </li>
           )}
         </ul>
+
+        {/* Logout Button */}
+        <button
+          onClick={logout}
+          className="mt-6 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+        >
+          Log Out
+        </button>
       </section>
     </div>
   );

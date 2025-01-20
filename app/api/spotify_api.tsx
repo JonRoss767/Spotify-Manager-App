@@ -14,8 +14,8 @@ export async function redirectToAuthCodeFlow(clientId: string) {
   const params = new URLSearchParams();
   params.append("client_id", clientId);
   params.append("response_type", "code");
-  params.append("redirect_uri", "http://localhost:3000/user");
-  params.append("scope", "user-read-private user-read-email");
+  params.append("redirect_uri", "http://localhost:3000/");
+  params.append("scope", "user-read-private user-library-read user-read-email");
   params.append("code_challenge_method", "S256");
   params.append("code_challenge", await challenge);
 
@@ -60,4 +60,22 @@ async function generateCodeChallenge(codeVerifier: string): Promise<string> {
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");
+}
+
+export async function refreshAccessToken(refresh_token: string) {
+  const response = await fetch("/api/refresh-token", {
+    // Backend endpoint
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ refresh_token }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to refresh token");
+  }
+
+  const data = await response.json();
+  return data.access_token; // Access token returned from backend
 }
