@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 interface TrackProps {
   track: {
     id: string;
@@ -16,7 +18,7 @@ export default function Track({ track }: TrackProps) {
     <li className="flex flex-col sm:flex-row items-start sm:items-center bg-white shadow-md rounded-lg p-4 mb-4 border border-gray-200">
       {/* Track Image */}
       {track.album.images[0]?.url && (
-        <img
+        <Image
           src={track.album.images[0].url}
           alt={track.album.name}
           className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg mr-4 mb-2 sm:mb-0"

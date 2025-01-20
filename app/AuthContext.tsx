@@ -6,13 +6,14 @@ import React, {
   useState,
   useEffect,
   ReactNode,
+  useCallback,
 } from "react";
 import {
   getAuthCode,
   redirectToAuthCodeFlow,
   getAccessToken,
   clientId,
-  refreshAccessToken, // We'll assume you have a helper to refresh the token.
+  refreshAccessToken,
 } from "./api/spotify_api";
 
 interface AuthContextType {
@@ -28,27 +29,21 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-const getStoredToken = () => {
-  return localStorage.getItem("access_token");
-};
-
-const getStoredRefreshToken = () => {
-  return localStorage.getItem("refresh_token");
-};
-
-const getStoredExpiresAt = () => {
-  return localStorage.getItem("expires_at");
-};
+const getStoredItem = (key: string): string | null => localStorage.getItem(key);
+const setStoredItem = (key: string, value: string) =>
+  localStorage.setItem(key, value);
+const removeStoredItem = (key: string) => localStorage.removeItem(key);
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [token, setToken] = useState<string | null>(getStoredToken());
+  const [token, setToken] = useState<string | null>(
+    getStoredItem("access_token")
+  );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Refresh the token if expired
-  const refreshToken = async () => {
-    const refresh_token = getStoredRefreshToken();
-    const expiresAt = getStoredExpiresAt();
+  const refreshToken = useCallback(async () => {
+    const refresh_token = getStoredItem("refresh_token");
+    const expiresAt = getStoredItem("expires_at");
 
     if (
       !refresh_token ||
@@ -61,68 +56,63 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setLoading(true);
       const refreshedTokenData = await refreshAccessToken(refresh_token);
-      setToken(refreshedTokenData.access_token);
-      localStorage.setItem("access_token", refreshedTokenData.access_token);
-      localStorage.setItem(
-        "expires_at",
-        (Date.now() / 1000 + refreshedTokenData.expires_in).toString()
-      );
+      const { access_token, expires_in } = refreshedTokenData;
 
-      return refreshedTokenData.access_token;
-    } catch (err: any) {
+      setToken(access_token);
+      setStoredItem("access_token", access_token);
+      setStoredItem("expires_at", (Date.now() / 1000 + expires_in).toString());
+    } catch (err: unknown) {
       setError("Failed to refresh token");
+      console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => {
-    async function handleAuth() {
-      const storedToken = getStoredToken();
+  const handleAuth = useCallback(async () => {
+    const storedToken = getStoredItem("access_token");
 
-      if (storedToken) {
-        const expiresAt = getStoredExpiresAt();
-        if (expiresAt && Date.now() / 1000 < parseInt(expiresAt)) {
-          setToken(storedToken);
-          setLoading(false);
-          return;
-        } else {
-          await refreshToken();
-          return;
-        }
-      }
-
-      const code = getAuthCode();
-
-      if (!code) {
-        redirectToAuthCodeFlow(clientId);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const token = await getAccessToken(clientId, code);
-        setToken(token);
-        localStorage.setItem("access_token", token);
-        localStorage.setItem(
-          "expires_at",
-          (Date.now() / 1000 + 3600).toString()
-        ); // Assuming token expires in 1 hour
-      } catch (err: any) {
-        setError(err.message || "Failed to fetch token");
-      } finally {
+    if (storedToken) {
+      const expiresAt = getStoredItem("expires_at");
+      if (expiresAt && Date.now() / 1000 < parseInt(expiresAt)) {
+        setToken(storedToken);
         setLoading(false);
+        return;
+      } else {
+        await refreshToken();
+        return;
       }
     }
 
+    const code = getAuthCode();
+    if (!code) {
+      redirectToAuthCodeFlow(clientId);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const token = await getAccessToken(clientId, code);
+      setToken(token);
+      setStoredItem("access_token", token);
+      setStoredItem("expires_at", (Date.now() / 1000 + 3600).toString()); // Assuming token expires in 1 hour
+    } catch (err: unknown) {
+      setError((err as Error).message || "Failed to fetch token");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [refreshToken]);
+
+  useEffect(() => {
     handleAuth();
-  }, []);
+  }, [handleAuth]);
 
   const logout = () => {
     setToken(null);
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("expires_at");
+    removeStoredItem("access_token");
+    removeStoredItem("refresh_token");
+    removeStoredItem("expires_at");
   };
 
   return (
@@ -134,10 +124,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
-
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
-
   return context;
 }

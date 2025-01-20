@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../AuthContext"; // Import the context to access token
 import SignInPrompt from "../components/SignInPrompt"; // Adjust the import path based on your file structure
+import Image from "next/image";
 
 // Type definitions
 interface Profile {
@@ -99,7 +100,7 @@ export default function UserPage() {
 
         {/* Profile Avatar */}
         {profile?.images && profile?.images.length > 0 && (
-          <img
+          <Image
             src={profile.images[0].url}
             alt="Profile Avatar"
             className="w-40 h-40 rounded-full mb-4"
