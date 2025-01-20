@@ -21,7 +21,6 @@ async function fetchProfile(token: string): Promise<Profile> {
 
   if (!response.ok) {
     if (response.status === 401) {
-      // Handle unauthorized access (expired token or invalid access)
       throw new Error("Unauthorized - Token may be expired");
     }
     throw new Error("Failed to fetch profile data");
@@ -33,10 +32,10 @@ async function fetchProfile(token: string): Promise<Profile> {
 export default function UserPage() {
   const {
     token,
+    refreshAccessToken,
     error: authError,
     loading: authLoading,
     logout,
-    refreshAccessToken,
   } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -60,29 +59,17 @@ export default function UserPage() {
           return;
         }
 
-        // Fetch profile data
-        const profileData = await fetchProfile(token);
+        const profileData = await fetchProfile(token); // Fetch profile data
         setProfile(profileData);
         localStorage.setItem("profile", JSON.stringify(profileData)); // Cache the profile
       } catch (err: unknown) {
         console.error(err);
 
-        // If the error is due to token expiration, attempt to refresh the token
         if ((err as Error).message === "Unauthorized - Token may be expired") {
           try {
-            // Try to refresh the token
-            const refresh_token = localStorage.getItem("refresh_token");
-            if (!refresh_token) {
-              setError("No refresh token found. Please log in again.");
-              setLoading(false);
-              return;
-            }
-
-            const refreshedToken = await refreshAccessToken(refresh_token);
-            localStorage.setItem("access_token", refreshedToken);
-            setToken(refreshedToken); // Update token in the state
+            await refreshAccessToken(); // Use refresh token from context
             // After refreshing the token, retry fetching the profile
-            const profileData = await fetchProfile(refreshedToken);
+            const profileData = await fetchProfile(token!);
             setProfile(profileData);
             localStorage.setItem("profile", JSON.stringify(profileData)); // Cache the profile
           } catch (refreshError) {
