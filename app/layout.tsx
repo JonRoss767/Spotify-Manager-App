@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import NavBar from "./componets/NavBar";
 import Image from "next/image";
+import { AuthProvider } from "./AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,7 +53,7 @@ export default function RootLayout({
           </div>
           {/* Main Content */}
           <div className="flex-1 overflow-y-auto bg-S-DarkGrey p-4 text-white">
-            {children}
+            <AuthProvider>{children}</AuthProvider>
           </div>
         </div>
       </body>

@@ -1,14 +1,20 @@
 "use client";
-import { useEffect, useState } from "react";
-import {
-  clientId,
-  getAuthCode,
-  redirectToAuthCodeFlow,
-  getAccessToken,
-} from "../api/spotify_api";
 
-// Profile fetching logic
-async function fetchProfile(token: string): Promise<any> {
+import { useEffect, useState } from "react";
+import { useAuth } from "../AuthContext"; // Import the context to access token
+
+// Type definitions
+interface Profile {
+  display_name: string;
+  id: string;
+  email: string;
+  images?: { url: string }[];
+  external_urls?: { spotify: string };
+  uri: string;
+}
+
+// Function to fetch the profile data
+async function fetchProfile(token: string): Promise<Profile> {
   const response = await fetch("https://api.spotify.com/v1/me", {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -21,46 +27,53 @@ async function fetchProfile(token: string): Promise<any> {
 }
 
 export default function UserPage() {
+  const { token, error: authError, loading: authLoading } = useAuth(); // Use AuthContext to get token
   const [profile, setProfile] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function handleAuth() {
-      const code = getAuthCode();
-
-      if (!code) {
-        // No auth code, redirect to login
-        redirectToAuthCodeFlow(clientId);
+    async function loadProfile() {
+      if (!token) {
+        setError("No token found. Please authenticate.");
+        setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
-        const token = await getAccessToken(clientId, code);
-        const profileData = await fetchProfile(token);
+        const profileData = await fetchProfile(token); // Fetch the profile using the token
         setProfile(profileData);
-      } catch (err: any) {
-        setError(err.message || "Failed to fetch profile data");
+      } catch (err) {
+        setError("Failed to fetch profile data");
       } finally {
         setLoading(false);
       }
     }
 
-    handleAuth();
-  }, []);
+    loadProfile();
+  }, [token]); // Trigger the effect whenever the token changes
 
-  // If there's an error
+  // If there is a token, loading or auth error
+  if (authLoading) {
+    return <p>Loading authentication...</p>;
+  }
+
+  if (authError) {
+    return <p>Error: {authError}</p>;
+  }
+
+  // If there's an error fetching the profile
   if (error) {
     return <p>Error: {error}</p>;
   }
 
-  // If the profile is still loading or missing
+  // If the profile is still loading
   if (loading) {
-    return <p>Loading...</p>;
+    return <p>Loading profile...</p>;
   }
 
-  // If profile is missing or invalid, show a message
+  // If profile data is unavailable
   if (!profile) {
     return <p>Profile data is unavailable. Please try again later.</p>;
   }
