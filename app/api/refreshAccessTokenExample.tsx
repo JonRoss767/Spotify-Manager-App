@@ -1,3 +1,6 @@
+// Helper to check if running on the client
+const isBrowser = typeof window !== "undefined";
+
 export async function refreshAccessToken(refresh_token: string) {
   const response = await fetch("/getRefreshAccessToken", {
     method: "POST",
