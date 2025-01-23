@@ -18,7 +18,7 @@ export default function CallbackPage() {
         code
       );
       console.log("Finished getTokenData");
-      const expiration_time = Date.now() + 30000; // + (expires_in * 1000)
+      const expiration_time = Date.now() + expires_in * 1000;
       console.log("access_token" + access_token);
       console.log("refresh_token" + refresh_token);
       console.log("expires_in" + expires_in * 1000);
@@ -26,6 +26,7 @@ export default function CallbackPage() {
       localStorage.setItem("access_token", access_token);
       localStorage.setItem("refresh_token", refresh_token);
       localStorage.setItem("expiration_time", expiration_time.toString());
+
       window.location.href = "/";
     }
 

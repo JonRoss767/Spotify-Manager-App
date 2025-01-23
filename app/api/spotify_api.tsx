@@ -74,6 +74,7 @@ export async function getTokenData(code: string): Promise<TokenData> {
   const { access_token, refresh_token, expires_in } = await result.json();
   return { access_token, refresh_token, expires_in };
 }
+
 // refreshToken
 export async function refreshAccessToken(
   current_refresh_token: string
