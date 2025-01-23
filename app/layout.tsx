@@ -23,9 +23,9 @@ export default function RootLayout({
       </head>
       <body className="flex h-screen">
         {/* Header */}
-        <div className="flex items-center bg-S-DarkGrey h-40 w-full text-white text-7xl fixed top-0 z-10 border-y-8 border-S-Black">
+        <div className="flex items-center bg-S-DarkGrey h-40 w-full text-white text-7xl fixed top-0 z-10 ">
           {/* Image */}
-          <div className="flex justify-center border-r-8 border-S-Black h-full w-64">
+          <div className="flex justify-center  h-full w-64">
             <Image
               src="/Spotify_Primary_Logo_RGB_Green.png"
               alt="Spotify Logo"
