@@ -1,7 +1,12 @@
 // ----important numbers----
 const CLIENT_ID = "8a8de0c5076345f9a5ff8c79ba6440f7";
 const REDIRECT_URI = "https://spotify-manager-app.vercel.app/callback";
-const auth_scope = "user-read-private user-library-read user-read-email";
+//const REDIRECT_URI = "http://localhost:3000/callback";
+const auth_scope = `
+  user-read-private 
+  playlist-read-private 
+  user-library-read 
+  user-read-email`;
 
 // ----interfaces----
 export interface TokenData {

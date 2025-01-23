@@ -108,6 +108,8 @@ export function getStoredAccessToken() {
   if (access_token && access_token !== "undefined") {
     return access_token;
   }
+  checkAuth();
+  return getStoredAccessToken();
 }
 
 export async function handleAuth() {
@@ -132,6 +134,8 @@ export async function fetchProfile(): Promise<Profile> {
   if (!response.ok) {
     if (response.status === 401) {
       throw new Error("Unauthorized - Token may be expired");
+    } else if (response.status === 403) {
+      throw new Error("403 Forbidden");
     }
     throw new Error("Failed to fetch profile data");
   }

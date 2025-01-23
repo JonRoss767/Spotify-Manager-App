@@ -3,6 +3,7 @@ import "./globals.css";
 import NavBar from "./components/NavBar";
 import Image from "next/image";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "Spotify Manager",
@@ -50,6 +51,7 @@ export default function RootLayout({
           <div className="flex-1 overflow-y-auto bg-S-DarkGrey p-4 text-white">
             {children}
             <Analytics />
+            <SpeedInsights />
           </div>
         </div>
       </body>
