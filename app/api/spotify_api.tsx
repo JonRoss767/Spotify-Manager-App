@@ -1,82 +1,68 @@
-export const clientId = "8a8de0c5076345f9a5ff8c79ba6440f7";
+// ----important numbers----
+const CLIENT_ID = "YOUR CLIENT ID HERE";
+const REDIRECT_URI = "http://localhost:3000/callback";
+const auth_scope = "user-read-private user-read-email";
 
-// Helper to check if running on the client
-const isBrowser = typeof window !== "undefined";
-
-interface TokenData {
+// ----interfaces----
+export interface TokenData {
   access_token: string;
   refresh_token: string;
   expires_in: number;
 }
 
-export async function refreshAccessToken(refresh_token: string) {
-  const response = await fetch("./getRefreshAccessToken", {
-    // Backend endpoint
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ refresh_token }),
-  });
+// ----authentication functions----
 
-  if (!response.ok) {
-    throw new Error("Failed to refresh token");
-  }
+// redirect user to auth page
+export async function redirectToAuthCodeFlow() {
+  const verifier = generateCodeVerifier(128); // Generate a random code verifier
+  const challenge = await generateCodeChallenge(verifier); // Create the challenge from the verifier
 
-  const data = await response.json();
-  return data.access_token; // Access token returned from backend
-}
-
-export function getAuthCode(): string | null {
-  // This logic will only work in the browser
-  if (!isBrowser) return null;
-  const params = new URLSearchParams(window.location.search);
-  return params.get("code");
-}
-
-export async function redirectToAuthCodeFlow(clientId: string) {
-  // This logic will only run in the browser
-  if (!isBrowser) return;
-
-  const verifier = generateCodeVerifier(128);
-  const challenge = await generateCodeChallenge(verifier);
-
-  // Store verifier in localStorage, only available in the browser
-  localStorage.setItem("verifier", verifier);
+  localStorage.setItem("verifier", verifier); // Save verifier for token exchange
 
   const params = new URLSearchParams();
-  params.append("client_id", clientId);
+  params.append("client_id", CLIENT_ID);
   params.append("response_type", "code");
-  params.append(
-    "redirect_uri",
-    "https://spotify-manager-4gkzmcu4p-jonathon-ross-projects-8c6fc734.vercel.app"
-  );
-  params.append("scope", "user-read-private user-library-read user-read-email");
+  params.append("redirect_uri", REDIRECT_URI); // Your app's redirect URI
+  params.append("scope", auth_scope); // Scopes for the requested permissions
   params.append("code_challenge_method", "S256");
   params.append("code_challenge", challenge);
 
-  // Redirect user to Spotify's authorization page
+  // Redirect the user to Spotify's authorization page
   document.location = `https://accounts.spotify.com/authorize?${params.toString()}`;
 }
 
-export async function getAccessToken(
-  clientId: string,
-  code: string
-): Promise<TokenData> {
-  if (!isBrowser) throw new Error("localStorage is not available");
+// part of PKCE -> used in redirectToAuthCodeFlow
+function generateCodeVerifier(length: number) {
+  let text = "";
+  let possible =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
+  for (let i = 0; i < length; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+}
+
+// part of PKCE -> used in redirectToAuthCodeFlow
+async function generateCodeChallenge(codeVerifier: string) {
+  const data = new TextEncoder().encode(codeVerifier);
+  const digest = await window.crypto.subtle.digest("SHA-256", data);
+  return btoa(String.fromCharCode.apply(null, [...new Uint8Array(digest)]))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+// getAccessTokenData
+export async function getTokenData(code: string): Promise<TokenData> {
   const verifier = localStorage.getItem("verifier");
-  if (!verifier) throw new Error("Verifier not found");
 
   const params = new URLSearchParams();
-  params.append("client_id", clientId);
+  params.append("client_id", CLIENT_ID);
   params.append("grant_type", "authorization_code");
   params.append("code", code);
-  params.append(
-    "redirect_uri",
-    "https://spotify-manager-4gkzmcu4p-jonathon-ross-projects-8c6fc734.vercel.app"
-  );
-  params.append("code_verifier", verifier);
+  params.append("redirect_uri", REDIRECT_URI);
+  params.append("code_verifier", verifier!);
 
   const result = await fetch("https://accounts.spotify.com/api/token", {
     method: "POST",
@@ -84,34 +70,32 @@ export async function getAccessToken(
     body: params,
   });
 
-  const data = await result.json();
-  console.log("Token Exchange Response:", data);
-
-  const { access_token, refresh_token, expires_in } = data;
-
-  if (!access_token || !refresh_token) {
-    throw new Error(
-      `Failed to fetch tokens. Response: ${JSON.stringify(data)}`
-    );
-  }
-
-  // Return the full object containing both tokens and expiration
+  const { access_token, refresh_token, expires_in } = await result.json();
   return { access_token, refresh_token, expires_in };
 }
+// refreshToken
+export async function refreshAccessToken(
+  current_refresh_token: string
+): Promise<TokenData> {
+  const url = "https://accounts.spotify.com/api/token";
 
-function generateCodeVerifier(length: number): string {
-  const possible =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  return Array.from({ length }, () =>
-    possible.charAt(Math.floor(Math.random() * possible.length))
-  ).join("");
-}
+  const payload = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: current_refresh_token,
+      client_id: CLIENT_ID,
+    }),
+  };
+  const body = await fetch(url, payload);
+  const { access_token, expires_in, refresh_token } = await body.json();
 
-async function generateCodeChallenge(codeVerifier: string): Promise<string> {
-  const data = new TextEncoder().encode(codeVerifier);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  return btoa(String.fromCharCode(...new Uint8Array(digest)))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
+  return {
+    access_token,
+    refresh_token: refresh_token || current_refresh_token,
+    expires_in,
+  };
 }

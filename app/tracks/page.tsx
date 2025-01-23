@@ -1,82 +1,69 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { useAuth } from "../AuthContext";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import {
+  isLoggedIn,
+  checkAndRefreshToken,
+  fetchSavedTracks,
+  TrackItem,
+} from "../api/spotify_data_functions";
 import Track from "../components/Track"; // Import the Track component
 
-interface TrackItem {
-  added_at: string;
-  track: {
-    id: string;
-    name: string;
-    artists: { name: string }[];
-    album: {
-      name: string;
-      release_date: string;
-      images: { url: string; height: number; width: number }[];
-    };
-  };
-}
-
-async function fetchSavedTracks(token: string, limit = 50, offset = 0) {
-  const url = `https://api.spotify.com/v1/me/tracks?limit=${limit}&offset=${offset}`;
-
-  const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch saved tracks: ${response.statusText}`);
-  }
-
-  return response.json();
-}
-
 export default function TracksPage() {
-  const { token, error: authError, loading: authLoading } = useAuth();
   const [tracks, setTracks] = useState<TrackItem[]>([]);
-  const [errorFetching, setErrorFetching] = useState<string | null>(null);
-  const [loading, setLoading] = useState<"initial" | "more" | null>(null);
-  const [nextOffset, setNextOffset] = useState<number | null>(null);
-
-  const loadSavedTracks = useCallback(
-    async (offset: number = 0) => {
-      if (!token) return;
-
-      try {
-        setErrorFetching(null);
-        setLoading(offset === 0 ? "initial" : "more");
-
-        const savedTracks = await fetchSavedTracks(token, 50, offset);
-        setTracks((prevTracks) => [...prevTracks, ...savedTracks.items]);
-        setNextOffset(
-          savedTracks.next
-            ? Number(new URL(savedTracks.next).searchParams.get("offset"))
-            : null
-        );
-      } catch (err) {
-        setErrorFetching(
-          err instanceof Error ? err.message : "An unknown error occurred"
-        );
-      } finally {
-        setLoading(null);
-      }
-    },
-    [token]
-  );
+  const [loading, setLoading] = useState(true); // State for loading status
+  const [nextOffset, setNextOffset] = useState<number | null>(0); // For pagination
+  const [loadingMore, setLoadingMore] = useState(false); // State for loading more tracks
 
   useEffect(() => {
-    if (typeof window !== "undefined" && token) {
-      loadSavedTracks();
+    if (!isLoggedIn()) {
+      window.location.href = "/login";
+      return;
     }
-  }, [token, loadSavedTracks]);
 
-  if (authLoading || loading === "initial") {
-    return <p>Loading...</p>;
+    async function getTracks() {
+      try {
+        checkAndRefreshToken();
+        const initialTracks = await fetchSavedTracks();
+        setTracks(initialTracks.items);
+        setNextOffset(
+          initialTracks.next ? initialTracks.offset + initialTracks.limit : null
+        );
+      } catch (error) {
+        console.error("Error fetching tracks:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    getTracks();
+  }, []);
+
+  async function loadSavedTracks(offset: number) {
+    setLoadingMore(true);
+    try {
+      checkAndRefreshToken();
+      const additionalTracks = await fetchSavedTracks(50, offset);
+      setTracks((prevTracks) => [...prevTracks, ...additionalTracks.items]);
+      setNextOffset(
+        additionalTracks.next
+          ? additionalTracks.offset + additionalTracks.limit
+          : null
+      );
+    } catch (error) {
+      console.error("Error loading more tracks:", error);
+    } finally {
+      setLoadingMore(false);
+    }
   }
 
-  if (authError || errorFetching) {
-    return <p>Error: {authError || errorFetching}</p>;
+  if (loading) {
+    return <h1>loading...</h1>;
+  }
+
+  if (!tracks) {
+    return <h1 className="text-5xl">Tracks fetch failed</h1>;
   }
 
   return (
@@ -88,9 +75,14 @@ export default function TracksPage() {
         ))}
       </ul>
       {nextOffset !== null && (
-        <button onClick={() => loadSavedTracks(nextOffset)}>Load more</button>
+        <button
+          onClick={() => loadSavedTracks(nextOffset)}
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+        >
+          Load more
+        </button>
       )}
-      {loading === "more" && <p>Loading more tracks...</p>}
+      {loadingMore && <p>Loading more tracks...</p>}
     </div>
   );
 }

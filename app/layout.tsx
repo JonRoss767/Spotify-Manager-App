@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import NavBar from "./components/NavBar";
 import Image from "next/image";
-import { AuthProvider } from "./AuthContext";
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
@@ -49,7 +48,7 @@ export default function RootLayout({
           </div>
           {/* Main Content */}
           <div className="flex-1 overflow-y-auto bg-S-DarkGrey p-4 text-white">
-            <AuthProvider>{children}</AuthProvider>
+            {children}
             <Analytics />
           </div>
         </div>
