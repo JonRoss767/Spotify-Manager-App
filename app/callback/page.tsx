@@ -23,9 +23,9 @@ export default function CallbackPage() {
       console.log("refresh_token" + refresh_token);
       console.log("expires_in" + expires_in * 1000);
 
-      localStorage.setItem("access_token", access_token);
-      localStorage.setItem("refresh_token", refresh_token);
-      localStorage.setItem("expiration_time", expiration_time.toString());
+      sessionStorage.setItem("access_token", access_token);
+      sessionStorage.setItem("refresh_token", refresh_token);
+      sessionStorage.setItem("expiration_time", expiration_time.toString());
 
       window.location.href = "/";
     }
