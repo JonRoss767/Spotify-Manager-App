@@ -17,12 +17,18 @@ export default function Track({ track }: TrackProps) {
   return (
     <li className="flex flex-col sm:flex-row items-start sm:items-center bg-white shadow-md rounded-lg p-4 mb-4 border border-gray-200">
       {/* Track Image */}
-      {track.album.images[0]?.url && (
+      {track.album.images[0]?.url ? (
         <Image
           src={track.album.images[0].url}
+          width={80}
+          height={80}
           alt={track.album.name}
-          className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg mr-4 mb-2 sm:mb-0"
+          className="w-20 h-20 rounded-lg mr-4 mb-2 sm:mb-0"
         />
+      ) : (
+        <div className="w-20 h-20 bg-gray-200 rounded-lg mr-4 mb-2 sm:mb-0 flex items-center justify-center text-gray-500">
+          No Image
+        </div>
       )}
 
       {/* Track Details */}
@@ -31,7 +37,10 @@ export default function Track({ track }: TrackProps) {
         <p className="text-sm text-gray-600">
           by {track.artists.map((artist) => artist.name).join(", ")}
         </p>
-        <p className="text-sm text-gray-500 italic">{track.album.name}</p>
+        <p className="text-sm text-gray-500 italic">
+          {track.album.name} ({new Date(track.album.release_date).getFullYear()}
+          )
+        </p>
       </div>
     </li>
   );

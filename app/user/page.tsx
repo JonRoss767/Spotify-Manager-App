@@ -96,6 +96,18 @@ export default function UserPage() {
               </a>
             </li>
           )}
+          {profile.country && (
+            <li>
+              <span className="font-medium text-gray-700">Country:</span>{" "}
+              {profile.country}
+            </li>
+          )}
+          {profile.followers && (
+            <li>
+              <span className="font-medium text-gray-700">Followers:</span>{" "}
+              {profile.followers.total}
+            </li>
+          )}
         </ul>
         <button
           onClick={logoutPrompt}

@@ -10,10 +10,10 @@ import {
 import Track from "../components/Track"; // Import the Track component
 
 export default function TracksPage() {
-  const [tracks, setTracks] = useState<TrackItem[]>([]);
-  const [nextOffset, setNextOffset] = useState<number | null>(0);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [tracks, setTracks] = useState<TrackItem[]>([]); // Saved tracks
+  const [nextOffset, setNextOffset] = useState<number | null>(0); // Offset for pagination
+  const [loading, setLoading] = useState(true); // Initial loading state
+  const [loadingMore, setLoadingMore] = useState(false); // State for loading more tracks
 
   useEffect(() => {
     if (!isLoggedIn()) {
@@ -23,9 +23,9 @@ export default function TracksPage() {
 
     async function getTracks() {
       try {
-        checkAndRefreshToken();
-        const initialTracks = await fetchSavedTracks();
-        setTracks(initialTracks.items);
+        checkAndRefreshToken(); // Refresh token if needed
+        const initialTracks = await fetchSavedTracks(); // Fetch initial set of tracks
+        setTracks(initialTracks.items); // Set tracks in state
         setNextOffset(
           initialTracks.next ? initialTracks.offset + initialTracks.limit : null
         );
@@ -42,9 +42,9 @@ export default function TracksPage() {
   async function loadSavedTracks(offset: number) {
     setLoadingMore(true);
     try {
-      checkAndRefreshToken();
-      const additionalTracks = await fetchSavedTracks(50, offset);
-      setTracks((prevTracks) => [...prevTracks, ...additionalTracks.items]);
+      checkAndRefreshToken(); // Refresh token if needed
+      const additionalTracks = await fetchSavedTracks(50, offset); // Fetch more tracks
+      setTracks((prevTracks) => [...prevTracks, ...additionalTracks.items]); // Append new tracks
       setNextOffset(
         additionalTracks.next
           ? additionalTracks.offset + additionalTracks.limit
@@ -58,30 +58,34 @@ export default function TracksPage() {
   }
 
   if (loading) {
-    return <h1>loading...</h1>;
+    return <h1>Loading...</h1>;
   }
 
-  if (!tracks) {
+  if (!tracks.length) {
     return <h1 className="text-5xl">Tracks fetch failed</h1>;
   }
 
   return (
-    <div>
+    <div className="container mx-auto p-4">
       <h1 className="text-5xl pb-4">Saved Tracks</h1>
-      <ul>
+      <ul className="flex flex-col gap-4">
         {tracks.map(({ track }, index) => (
           <Track key={`${track.id}-${index}`} track={track} />
         ))}
       </ul>
       {nextOffset !== null && (
-        <button
-          onClick={() => loadSavedTracks(nextOffset)}
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-        >
-          Load more
-        </button>
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={() => loadSavedTracks(nextOffset)}
+            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Load more
+          </button>
+        </div>
       )}
-      {loadingMore && <p>Loading more tracks...</p>}
+      {loadingMore && (
+        <p className="text-center mt-4">Loading more tracks...</p>
+      )}
     </div>
   );
 }

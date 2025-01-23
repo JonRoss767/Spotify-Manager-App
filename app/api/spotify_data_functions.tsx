@@ -7,9 +7,21 @@ export interface Profile {
   display_name: string;
   id: string;
   email: string;
-  images?: { url: string }[];
+  images?: { url: string; height?: number; width?: number }[];
   external_urls?: { spotify: string };
   uri: string;
+  country?: string;
+  explicit_content?: {
+    filter_enabled: boolean;
+    filter_locked: boolean;
+  };
+  followers?: {
+    href: string | null;
+    total: number;
+  };
+  href?: string;
+  product?: string;
+  type?: string;
 }
 
 export interface TrackItem {

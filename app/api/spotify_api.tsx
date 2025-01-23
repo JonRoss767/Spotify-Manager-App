@@ -1,7 +1,6 @@
 // ----important numbers----
 const CLIENT_ID = "8a8de0c5076345f9a5ff8c79ba6440f7";
-const REDIRECT_URI =
-  "https://spotify-manager-nx893j6cr-jonathon-ross-projects-8c6fc734.vercel.app/callback";
+const REDIRECT_URI = "http://localhost:3000/callback";
 const auth_scope = "user-read-private user-library-read user-read-email";
 
 // ----interfaces----
