@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { getTokenData } from "../api/spotify_api";
 
-export default function callbackPage() {
+export default function CallbackPage() {
   useEffect(() => {
     async function init() {
       const params = new URLSearchParams(window.location.search);

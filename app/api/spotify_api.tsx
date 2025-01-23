@@ -34,7 +34,7 @@ export async function redirectToAuthCodeFlow() {
 // part of PKCE -> used in redirectToAuthCodeFlow
 function generateCodeVerifier(length: number) {
   let text = "";
-  let possible =
+  const possible =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
   for (let i = 0; i < length; i++) {

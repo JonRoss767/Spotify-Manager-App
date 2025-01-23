@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import {
   isLoggedIn,
   checkAndRefreshToken,
@@ -12,9 +11,9 @@ import Track from "../components/Track"; // Import the Track component
 
 export default function TracksPage() {
   const [tracks, setTracks] = useState<TrackItem[]>([]);
-  const [loading, setLoading] = useState(true); // State for loading status
-  const [nextOffset, setNextOffset] = useState<number | null>(0); // For pagination
-  const [loadingMore, setLoadingMore] = useState(false); // State for loading more tracks
+  const [nextOffset, setNextOffset] = useState<number | null>(0);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn()) {
