@@ -27,7 +27,7 @@ export default function CallbackPage() {
       localStorage.setItem("refresh_token", refresh_token);
       localStorage.setItem("expiration_time", expiration_time.toString());
 
-      window.location.href = "/";
+      //window.location.href = "/";
     }
 
     init();
