@@ -40,7 +40,7 @@ export interface TrackItem {
 
 // ----authentication helper functions----
 export function isLoggedIn() {
-  const access_token = localStorage.getItem("access_token");
+  const access_token = sessionStorage.getItem("access_token");
   if (!access_token || access_token === "undefined") {
     return false;
   }
@@ -66,8 +66,8 @@ export async function checkAuth() {
 export async function checkAndRefreshToken() {
   await checkAuth();
 
-  const expiration_time = localStorage.getItem("expiration_time");
-  const refresh_token = localStorage.getItem("refresh_token");
+  const expiration_time = sessionStorage.getItem("expiration_time");
+  const refresh_token = sessionStorage.getItem("refresh_token");
 
   if (
     expiration_time &&
@@ -85,9 +85,9 @@ export async function checkAndRefreshToken() {
       } = newTokenData;
 
       const newExpirationTime = Date.now() + new_expires_in * 1000;
-      localStorage.setItem("access_token", new_access_token);
-      localStorage.setItem("refresh_token", new_refresh_token);
-      localStorage.setItem("expiration_time", newExpirationTime.toString());
+      sessionStorage.setItem("access_token", new_access_token);
+      sessionStorage.setItem("refresh_token", new_refresh_token);
+      sessionStorage.setItem("expiration_time", newExpirationTime.toString());
 
       console.log("Access token successfully refreshed.");
     } catch (error) {
@@ -97,14 +97,14 @@ export async function checkAndRefreshToken() {
 }
 
 export function getAllAuthData() {
-  const access_token = localStorage.getItem("access_token");
-  const refresh_token = localStorage.getItem("refresh_token");
-  const expiration_time = localStorage.getItem("expiration_time");
+  const access_token = sessionStorage.getItem("access_token");
+  const refresh_token = sessionStorage.getItem("refresh_token");
+  const expiration_time = sessionStorage.getItem("expiration_time");
   return { access_token, refresh_token, expiration_time };
 }
 
 export function getStoredAccessToken() {
-  const access_token = localStorage.getItem("access_token");
+  const access_token = sessionStorage.getItem("access_token");
   if (access_token && access_token !== "undefined") {
     return access_token;
   }
@@ -144,9 +144,7 @@ export async function fetchProfile(): Promise<Profile> {
 }
 
 export function logout() {
-  localStorage.removeItem("access_token");
-  localStorage.removeItem("refresh_token");
-  localStorage.removeItem("expiration_time");
+  sessionStorage.clear();
 
   // Redirect to the login page
   window.location.href = "/login";
