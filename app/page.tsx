@@ -1,5 +1,4 @@
 import Head from "next/head";
-import Link from "next/link";
 
 export default function HomePage() {
   return (
@@ -14,8 +13,11 @@ export default function HomePage() {
             <h2 className="text-4xl font-semibold text-S-Green mb-4">
               Welcome Back!
             </h2>
-            <p className="text-S-LightGrey text-lg">
+            <p className="text-S-LightGrey text-3xl">
               Manage your liked songs, albums, and artists all in one place.
+            </p>
+            <p className="text-S-LightGrey text-lg">
+              Check out our About Page for more details!
             </p>
           </section>
         </main>
