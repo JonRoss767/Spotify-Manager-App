@@ -22,7 +22,7 @@ export async function redirectToAuthCodeFlow() {
   const verifier = generateCodeVerifier(128); // Generate a random code verifier
   const challenge = await generateCodeChallenge(verifier); // Create the challenge from the verifier
 
-  localStorage.setItem("verifier", verifier); // Save verifier for token exchange
+  sessionStorage.setItem("verifier", verifier); // Save verifier for token exchange
 
   const params = new URLSearchParams();
   params.append("client_id", CLIENT_ID);
@@ -60,7 +60,7 @@ async function generateCodeChallenge(codeVerifier: string) {
 
 // getAccessTokenData
 export async function getTokenData(code: string): Promise<TokenData> {
-  const verifier = localStorage.getItem("verifier");
+  const verifier = sessionStorage.getItem("verifier");
 
   const params = new URLSearchParams();
   params.append("client_id", CLIENT_ID);

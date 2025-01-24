@@ -27,7 +27,7 @@ export default function CallbackPage() {
       sessionStorage.setItem("refresh_token", refresh_token);
       sessionStorage.setItem("expiration_time", expiration_time.toString());
 
-      window.location.href = "/";
+      window.location.href = "/user";
     }
 
     init();
