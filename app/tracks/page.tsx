@@ -11,12 +11,11 @@ import Track from "../components/Track";
 import { FixedSizeList as List } from "react-window";
 
 export default function TracksPage() {
-  const [tracks, setTracks] = useState<TrackItem[]>([]); // Saved tracks
-  const [loading, setLoading] = useState(true); // Initial loading state
-  const [backgroundLoading, setBackgroundLoading] = useState(false); // Background loading state
-  const [totalFetched, setTotalFetched] = useState(0); // Tracks fetched so far
-  const [totalTracks, setTotalTracks] = useState<number | null>(null); // Total number of liked songs
-  const [loadingMore, setLoadingMore] = useState(false); // Track if background loading is happening
+  const [tracks, setTracks] = useState<TrackItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [backgroundLoading, setBackgroundLoading] = useState(false);
+  const [totalFetched, setTotalFetched] = useState(0);
+  const [totalTracks, setTotalTracks] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isLoggedIn()) {
@@ -24,19 +23,17 @@ export default function TracksPage() {
       return;
     }
 
-    // Load the first 50 tracks
     async function loadInitialTracks() {
       try {
         setLoading(true);
-        await checkAndRefreshToken(); // Check if access token is still valid
-        const response = await fetchSavedTracks(50, 0); // Fetch the first batch of tracks
-        setTracks(response.items); // List of tracks fetched
-        setTotalFetched(response.items.length); // Total tracks fetched so far
-        setTotalTracks(response.total); // Total tracks available
+        await checkAndRefreshToken();
+        const response = await fetchSavedTracks(50, 0);
+        setTracks(response.items);
+        setTotalFetched(response.items.length);
+        setTotalTracks(response.total);
 
-        // If there are more tracks to load, initiate background fetching
         if (response.next) {
-          loadRemainingTracks(response.offset + response.limit); // Start background loading
+          loadRemainingTracks(response.offset + response.limit);
         }
       } catch (error) {
         console.error("Error fetching initial tracks:", error);
@@ -45,30 +42,31 @@ export default function TracksPage() {
       }
     }
 
-    // Load the next batch of tracks only when more tracks are available
     const loadRemainingTracks = async (startOffset: number) => {
-      if (loadingMore) return; // Prevent loading if another background fetch is ongoing
+      if (backgroundLoading) return;
 
       setBackgroundLoading(true);
-      setLoadingMore(true); // Track background loading state
 
-      let offset = startOffset; // Get current offset
+      let offset = startOffset;
       let hasMore = true;
 
-      while (hasMore) {
-        const response = await fetchSavedTracks(50, offset); // Fetch tracks
-        setTracks((prevTracks) => [...prevTracks, ...response.items]); // Append new tracks
-        setTotalFetched((prevCount) => prevCount + response.items.length); // Update counter
-        offset += response.items.length;
-        hasMore = response.next !== null;
+      try {
+        while (hasMore) {
+          const response = await fetchSavedTracks(50, offset);
+          setTracks((prevTracks) => [...prevTracks, ...response.items]);
+          setTotalFetched((prevCount) => prevCount + response.items.length);
+          offset += response.items.length;
+          hasMore = response.next !== null;
+        }
+      } catch (error) {
+        console.error("Error fetching additional tracks:", error);
+      } finally {
+        setBackgroundLoading(false);
       }
-
-      setLoadingMore(false); // Background loading complete
-      setBackgroundLoading(false); // Hide loading spinner
     };
 
     loadInitialTracks();
-  }, [loadingMore]);
+  }, []); // Empty dependency array ensures this effect runs only once
 
   if (loading) {
     return <h1>Loading...</h1>;
@@ -78,7 +76,6 @@ export default function TracksPage() {
     return <h1 className="text-5xl">Tracks fetch failed</h1>;
   }
 
-  // Define the row renderer for react-window
   const Row = ({
     index,
     style,
@@ -96,7 +93,6 @@ export default function TracksPage() {
 
   return (
     <div className="flex flex-col p-4">
-      {/* Header */}
       <div className="sticky top-0 bg-S-Grey z-10 shadow-md h-20 p-4 flex items-center">
         <h1 className="text-3xl font-bold">
           Your Liked Songs{" "}
@@ -106,7 +102,6 @@ export default function TracksPage() {
         </h1>
       </div>
 
-      {/* Song list - virtualized with react-window */}
       <List
         height={window.innerHeight - 100}
         itemCount={tracks.length}
