@@ -10,12 +10,14 @@ export default function LoginPage() {
       <Head>
         <title>Login</title>
       </Head>
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="p-8 bg-white shadow-md rounded-lg">
-          <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
+      <div className="flex items-center justify-center h-full bg-S-Black">
+        <div className="p-8 bg-S-DarkGrey shadow-lg rounded-lg w-full max-w-md">
+          <h1 className="text-4xl font-bold text-center text-S-Green mb-6">
+            Sign In
+          </h1>
           <button
             onClick={redirectToAuthCodeFlow}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            className="w-full px-4 py-3 bg-S-Green text-white text-lg font-medium rounded-md hover:bg-S-Grey transition-all"
           >
             Log In
           </button>

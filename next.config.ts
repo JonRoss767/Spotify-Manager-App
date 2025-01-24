@@ -1,9 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig = {
-  images: {
-    domains: ['scontent-cdg4-2.xx.fbcdn.net', 'scontent-ams4-1.xx.fbcdn.net', 'i.scdn.co'], 
-  },
+  remotePatterns: [
+    {
+      protocol: 'https',
+      hostname: 'i.scdn.co',
+      pathname: '/**',
+    },
+  ],
 };
 
 export default nextConfig;

@@ -51,70 +51,76 @@ export default function UserPage() {
   }
 
   return (
-    <div className="w-full mx-auto p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Spotify Profile</h1>
-      <section className="bg-white shadow-md rounded-lg p-6 border border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-700 mb-4">
-          Logged in as {profile.display_name}
-        </h2>
-        {profile.images?.length ? (
-          <Image
-            src={profile.images[0].url}
-            alt="Profile Avatar"
-            className="w-40 h-40 rounded-full mb-4"
-            width={160}
-            height={160}
-          />
-        ) : (
-          <div className="w-40 h-40 rounded-full mb-4 bg-gray-300 flex justify-center items-center">
-            <span className="text-gray-600">No image</span>
-          </div>
-        )}
-        <ul className="space-y-2 text-gray-600">
-          <li>
-            <span className="font-medium text-gray-700">User ID:</span>{" "}
-            {profile.id}
-          </li>
-          <li>
-            <span className="font-medium text-gray-700">Email:</span>{" "}
-            {profile.email}
-          </li>
-          <li>
-            <span className="font-medium text-gray-700">Spotify URI:</span>{" "}
-            <a href={profile.uri} className="text-blue-500 hover:underline">
-              {profile.uri}
-            </a>
-          </li>
-          {profile.external_urls?.spotify && (
+    <div className="w-full p-6 bg-S-Black min-h-screen text-white">
+      <section className="bg-S-DarkGrey shadow-lg rounded-lg p-10 flex flex-col lg:flex-row items-center lg:items-stretch lg:justify-between border border-S-Grey">
+        {/* Profile Details */}
+        <div className="flex-1">
+          <h2 className="text-4xl font-semibold text-S-Green mb-6">
+            Logged in as {profile.display_name}
+          </h2>
+          <ul className="space-y-6 text-S-LightGrey text-2xl leading-relaxed">
             <li>
-              <span className="font-medium text-gray-700">Link:</span>{" "}
-              <a
-                href={profile.external_urls.spotify}
-                className="text-blue-500 hover:underline"
-              >
-                Profile Link
+              <span className="font-medium text-white">User ID:</span>{" "}
+              {profile.id}
+            </li>
+            <li>
+              <span className="font-medium text-white">Email:</span>{" "}
+              {profile.email}
+            </li>
+            <li>
+              <span className="font-medium text-white">Spotify URI:</span>{" "}
+              <a href={profile.uri} className="text-S-Green hover:underline">
+                {profile.uri}
               </a>
             </li>
+            {profile.external_urls?.spotify && (
+              <li>
+                <span className="font-medium text-white">Link:</span>{" "}
+                <a
+                  href={profile.external_urls.spotify}
+                  className="text-S-Green hover:underline"
+                >
+                  Profile Link
+                </a>
+              </li>
+            )}
+            {profile.country && (
+              <li>
+                <span className="font-medium text-white">Country:</span>{" "}
+                {profile.country}
+              </li>
+            )}
+            {profile.followers && (
+              <li>
+                <span className="font-medium text-white">Followers:</span>{" "}
+                {profile.followers.total}
+              </li>
+            )}
+          </ul>
+          <button
+            onClick={logoutPrompt}
+            className="mt-8 px-8 py-4 bg-red-500 text-white text-xl rounded-md hover:bg-red-600 transition-all"
+          >
+            Log Out
+          </button>
+        </div>
+
+        {/* Profile Image */}
+        <div className="flex justify-center items-center lg:items-center mt-10 lg:mt-0">
+          {profile.images?.length ? (
+            <Image
+              src={profile.images[0].url}
+              alt="Profile Avatar"
+              className="rounded-full shadow-md"
+              width={350}
+              height={350}
+            />
+          ) : (
+            <div className="w-72 h-72 rounded-full bg-S-Grey flex justify-center items-center shadow-md">
+              <span className="text-S-LightGrey text-2xl">No image</span>
+            </div>
           )}
-          {profile.country && (
-            <li>
-              <span className="font-medium text-gray-700">Country:</span>{" "}
-              {profile.country}
-            </li>
-          )}
-          {profile.followers && (
-            <li>
-              <span className="font-medium text-gray-700">Followers:</span>{" "}
-              {profile.followers.total}
-            </li>
-          )}
-        </ul>
-        <button
-          onClick={logoutPrompt}
-          className="mt-6 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-        >
-          Log Out
-        </button>
+        </div>
       </section>
     </div>
   );
