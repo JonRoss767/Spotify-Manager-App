@@ -25,12 +25,12 @@ export default function RootLayout({
         {/* Header */}
         <div className="flex items-center bg-S-DarkGrey h-40 w-full text-white text-7xl fixed top-0 z-10 ">
           {/* Image */}
-          <div className="flex justify-center  h-full w-64">
+          <div className="flex justify-center h-full w-64 ">
             <Image
               src="/Spotify_Primary_Logo_RGB_Green.png"
               alt="Spotify Logo"
-              width={140} // Matches the width of the sidebar
-              height={140} // Adjust to fit the height of the header
+              width={200} // Matches the width of the sidebar
+              height={200} // Adjust to fit the height of the header
               className="object-contain"
             />
           </div>
@@ -41,14 +41,14 @@ export default function RootLayout({
           </div>
         </div>
 
-        {/* Main Layout: Sidebar and Content */}
+        {/* Sidebar and Content */}
         <div className="flex flex-1 pt-40">
           {/* Sidebar */}
           <div className="w-64 h-full">
             <NavBar />
           </div>
           {/* Main Content */}
-          <div className="flex-1 overflow-y-auto bg-S-DarkGrey p-4 text-white">
+          <div className="flex-1 overflow-y-auto bg-S-DarkGrey text-white">
             {children}
             <Analytics />
             <SpeedInsights />

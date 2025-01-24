@@ -11,11 +11,17 @@ interface TrackProps {
       images: { url: string; height: number; width: number }[];
     };
   };
+  index: number; // Added the index as a prop
 }
 
-export default function Track({ track }: TrackProps) {
+export default function Track({ track, index }: TrackProps) {
   return (
     <li className="flex flex-col sm:flex-row items-start sm:items-center bg-white shadow-md rounded-lg p-4 mb-4 border border-gray-200">
+      {/* Track Number */}
+      <div className="text-lg font-mono text-gray-500 mr-4 mb-2 sm:mb-0">
+        {index}.
+      </div>
+
       {/* Track Image */}
       {track.album.images[0]?.url ? (
         <Image
