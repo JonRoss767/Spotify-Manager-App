@@ -29,8 +29,8 @@ export default function RootLayout({
             <Image
               src="/Spotify_Primary_Logo_RGB_Green.png"
               alt="Spotify Logo"
-              width={200} // Matches the width of the sidebar
-              height={200} // Adjust to fit the height of the header
+              width={200}
+              height={200}
               className="object-contain"
             />
           </div>

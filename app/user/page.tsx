@@ -58,24 +58,22 @@ export default function UserPage() {
           <h2 className="text-4xl font-semibold text-S-Green mb-6">
             Logged in as {profile.display_name}
           </h2>
-          <ul className="space-y-6 text-S-LightGrey text-2xl leading-relaxed">
+          <ul className="space-y-6 text-white text-2xl leading-relaxed">
             <li>
-              <span className="font-medium text-white">User ID:</span>{" "}
-              {profile.id}
+              <span className="font-semibold">User ID:</span> {profile.id}
             </li>
             <li>
-              <span className="font-medium text-white">Email:</span>{" "}
-              {profile.email}
+              <span className="font-semibold">Email:</span> {profile.email}
             </li>
             <li>
-              <span className="font-medium text-white">Spotify URI:</span>{" "}
+              <span className="font-semibold">Spotify URI:</span>{" "}
               <a href={profile.uri} className="text-S-Green hover:underline">
                 {profile.uri}
               </a>
             </li>
             {profile.external_urls?.spotify && (
               <li>
-                <span className="font-medium text-white">Link:</span>{" "}
+                <span className="font-semibold">Link:</span>{" "}
                 <a
                   href={profile.external_urls.spotify}
                   className="text-S-Green hover:underline"
@@ -86,13 +84,13 @@ export default function UserPage() {
             )}
             {profile.country && (
               <li>
-                <span className="font-medium text-white">Country:</span>{" "}
+                <span className="font-semibold">Country:</span>{" "}
                 {profile.country}
               </li>
             )}
             {profile.followers && (
               <li>
-                <span className="font-medium text-white">Followers:</span>{" "}
+                <span className="font-semibold">Followers:</span>{" "}
                 {profile.followers.total}
               </li>
             )}
@@ -105,21 +103,22 @@ export default function UserPage() {
           </button>
         </div>
 
-        {/* Profile Image */}
-        <div className="flex justify-center items-center lg:items-center mt-10 lg:mt-0">
-          {profile.images?.length ? (
-            <Image
-              src={profile.images[0].url}
-              alt="Profile Avatar"
-              className="rounded-full shadow-md"
-              width={350}
-              height={350}
-            />
-          ) : (
-            <div className="w-72 h-72 rounded-full bg-S-Grey flex justify-center items-center shadow-md">
-              <span className="text-S-LightGrey text-2xl">No image</span>
-            </div>
-          )}
+        <div className="flex justify-center items-center mr-20 ">
+          <div className="w-auto h-auto bg-S-Black rounded-lg p-4 flex justify-center items-center">
+            {profile.images?.length ? (
+              <Image
+                src={profile.images[0].url}
+                alt="Profile Avatar"
+                className="rounded-full shadow-md"
+                width={300}
+                height={300}
+              />
+            ) : (
+              <div className="w-72 h-72 rounded-full bg-S-Grey flex justify-center items-center shadow-md">
+                <span className="text-S-LightGrey text-2xl">No image</span>
+              </div>
+            )}
+          </div>
         </div>
       </section>
     </div>
