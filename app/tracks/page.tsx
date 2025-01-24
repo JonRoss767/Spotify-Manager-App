@@ -24,11 +24,11 @@ export default function TracksPage() {
       return;
     }
 
-    // load the first 50 tracks
+    // Load the first 50 tracks
     async function loadInitialTracks() {
       try {
         setLoading(true);
-        checkAndRefreshToken(); // Check if access token is still valid
+        await checkAndRefreshToken(); // Check if access token is still valid
         const response = await fetchSavedTracks(50, 0); // Fetch the first batch of tracks
         setTracks(response.items); // List of tracks fetched
         setTotalFetched(response.items.length); // Total tracks fetched so far
@@ -46,7 +46,7 @@ export default function TracksPage() {
     }
 
     // Load the next batch of tracks only when more tracks are available
-    async function loadRemainingTracks(startOffset: number) {
+    const loadRemainingTracks = async (startOffset: number) => {
       if (loadingMore) return; // Prevent loading if another background fetch is ongoing
 
       setBackgroundLoading(true);
@@ -65,10 +65,10 @@ export default function TracksPage() {
 
       setLoadingMore(false); // Background loading complete
       setBackgroundLoading(false); // Hide loading spinner
-    }
+    };
 
     loadInitialTracks();
-  }, []);
+  }, [loadingMore]);
 
   if (loading) {
     return <h1>Loading...</h1>;

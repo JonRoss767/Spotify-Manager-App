@@ -47,8 +47,8 @@ export default function AboutPage() {
       {/* App Preview Section */}
       <h2 className="text-S-Green text-4xl font-semibold">App Preview</h2>
       <p className="text-xl text-center max-w-4xl">
-        Don't have a Spotify account or want to log in? Here are some
-        screenshots of the app in its current state:
+        Dont have a Spotify account or want to log in? Here are some screenshots
+        of the app in its current state:
       </p>
       <div className="flex flex-col items-center space-y-8">
         <Image
