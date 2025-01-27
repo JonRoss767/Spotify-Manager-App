@@ -25,8 +25,24 @@ export default function NavBar() {
         {navItems.map((item) => (
           <li key={item.path}>
             <Link
-              className={`border-4 border-S-Black bg-S-LightGrey p-4 w-full text-S-Black text-3xl font-normal hover:text-S-Green transition-all text-center flex items-center justify-center gap-2`}
               href={item.path}
+              className={`
+                border-4 
+                border-S-Black 
+                bg-S-LightGrey 
+                p-4 
+                w-full 
+                text-S-Black 
+                text-3xl 
+                font-normal 
+                hover:text-S-Green 
+                transition-all 
+                text-center 
+                flex 
+                items-center 
+                justify-center 
+                gap-2
+              `}
             >
               {item.icon}
               {item.name}

@@ -5,17 +5,18 @@ import {
   isLoggedIn,
   checkAndRefreshToken,
   fetchSavedTracks,
-  TrackItem,
 } from "../api/spotify_data_functions";
-import Track from "../components/Track";
+import { Track, TrackProps } from "../components/Track";
 import { FixedSizeList as List } from "react-window";
+import SearchBar from "../components/SearchBar";
 
 export default function TracksPage() {
-  const [tracks, setTracks] = useState<TrackItem[]>([]);
+  const [tracks, setTracks] = useState<TrackProps[]>([]);
   const [loading, setLoading] = useState(true);
   const [backgroundLoading, setBackgroundLoading] = useState(false);
   const [totalFetched, setTotalFetched] = useState(0);
   const [totalTracks, setTotalTracks] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (!isLoggedIn()) {
@@ -66,7 +67,7 @@ export default function TracksPage() {
     };
 
     loadInitialTracks();
-  }, []); // Empty dependency array ensures this effect runs only once
+  }, []);
 
   if (loading) {
     return <h1>Loading...</h1>;
@@ -76,6 +77,10 @@ export default function TracksPage() {
     return <h1 className="text-5xl">Tracks fetch failed</h1>;
   }
 
+  const filteredTracks = tracks.filter((track) =>
+    track.track.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const Row = ({
     index,
     style,
@@ -83,7 +88,7 @@ export default function TracksPage() {
     index: number;
     style: React.CSSProperties;
   }) => {
-    const { track } = tracks[index];
+    const { track } = filteredTracks[index];
     return (
       <div style={style}>
         <Track key={`${track.id}-${index}`} track={track} index={index + 1} />
@@ -100,11 +105,12 @@ export default function TracksPage() {
             ({totalFetched}/{totalTracks || "?"} songs)
           </span>
         </h1>
+        <SearchBar onSearch={setSearchQuery} />
       </div>
 
       <List
-        height={window.innerHeight - 100}
-        itemCount={tracks.length}
+        height={window.innerHeight - 275}
+        itemCount={filteredTracks.length}
         itemSize={125}
         width="100%"
       >

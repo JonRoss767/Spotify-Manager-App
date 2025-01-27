@@ -24,20 +24,6 @@ export interface Profile {
   type?: string;
 }
 
-export interface TrackItem {
-  added_at: string;
-  track: {
-    id: string;
-    name: string;
-    artists: { name: string }[];
-    album: {
-      name: string;
-      release_date: string;
-      images: Image[];
-    };
-  };
-}
-
 interface Image {
   url: string;
   height: number;

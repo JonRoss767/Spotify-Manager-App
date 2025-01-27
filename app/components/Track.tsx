@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-interface TrackProps {
+export interface TrackProps {
   track: {
     id: string;
     name: string;
@@ -11,14 +11,33 @@ interface TrackProps {
       images: { url: string; height: number; width: number }[];
     };
   };
-  index: number; // Added the index as a prop
+  index: number;
 }
 
-export default function Track({ track, index }: TrackProps) {
+export function Track({ track, index }: TrackProps) {
   return (
-    <li className="flex flex-col sm:flex-row items-start sm:items-center bg-white shadow-md rounded-lg p-4 mb-4 border border-gray-200">
+    <li
+      className={`
+        flex 
+        flex-col 
+        items-start 
+        sm:flex-row 
+        sm:items-center 
+        bg-white 
+        shadow-md 
+        rounded-lg 
+        p-4 
+        mb-4 
+        border 
+        border-gray-200 
+        hover:border-4
+        hover:border-S-Green
+        transition-all
+        
+       `}
+    >
       {/* Track Number */}
-      <div className="text-lg font-mono text-gray-500 mr-4 mb-2 sm:mb-0">
+      <div className="text-lg font-mono text-S-Black mr-4 mb-2 sm:mb-0">
         {index}.
       </div>
 
@@ -43,7 +62,7 @@ export default function Track({ track, index }: TrackProps) {
         <p className="text-sm text-gray-600">
           by {track.artists.map((artist) => artist.name).join(", ")}
         </p>
-        <p className="text-sm text-gray-500 italic">
+        <p className="text-sm text-gray-600 italic">
           {track.album.name} ({new Date(track.album.release_date).getFullYear()}
           )
         </p>
