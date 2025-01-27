@@ -24,12 +24,6 @@ export interface Profile {
   type?: string;
 }
 
-interface Image {
-  url: string;
-  height: number;
-  width: number;
-}
-
 // ----authentication helper functions----
 export function isLoggedIn() {
   const access_token = sessionStorage.getItem("access_token");
